@@ -2,8 +2,8 @@
 
 namespace Webkul\Core\Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use DB;
+use Illuminate\Database\Seeder;
 
 class CurrencyTableSeeder extends Seeder
 {
@@ -15,8 +15,8 @@ class CurrencyTableSeeder extends Seeder
 
         DB::table('currencies')->insert([
             'id' => 1,
-            'code' => 'USD',
-            'name' => 'US Dollar'
+            'code' => 'INR',
+            'name' => 'Indian Rupee',
         ]);
     }
 }

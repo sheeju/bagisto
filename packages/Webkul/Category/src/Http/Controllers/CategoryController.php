@@ -4,9 +4,9 @@ namespace Webkul\Category\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Webkul\Category\Repositories\CategoryRepository as Category;
-use Webkul\Category\Models\CategoryTranslation;
 use Illuminate\Support\Facades\Event;
+use Webkul\Category\Models\CategoryTranslation;
+use Webkul\Category\Repositories\CategoryRepository as Category;
 
 /**
  * Catalog category controller
@@ -75,7 +75,7 @@ class CategoryController extends Controller
         $this->validate(request(), [
             'slug' => ['required', 'unique:category_translations,slug', new \Webkul\Core\Contracts\Validations\Slug],
             'name' => 'required',
-            'image.*' => 'mimes:jpeg,jpg,bmp,png'
+            'image.*' => 'mimes:jpeg,jpg,bmp,png',
         ]);
 
         if (strtolower(request()->input('name')) == 'root') {
@@ -83,7 +83,7 @@ class CategoryController extends Controller
 
             $result = $categoryTransalation->where('name', request()->input('name'))->get();
 
-            if(count($result) > 0) {
+            if (count($result) > 0) {
                 session()->flash('error', trans('admin::app.response.create-root-failure'));
 
                 return redirect()->back();
@@ -105,7 +105,8 @@ class CategoryController extends Controller
      */
     public function edit($id)
     {
-        $categories = $this->category->getCategoryTree($id);
+        $categories = $this->category->getCategoryTree(null, ['id']);
+        #$categories = $this->category->getCategoryTree($id);
 
         $category = $this->category->find($id);
 
@@ -125,12 +126,12 @@ class CategoryController extends Controller
 
         $this->validate(request(), [
             $locale . '.slug' => ['required', new \Webkul\Core\Contracts\Validations\Slug, function ($attribute, $value, $fail) use ($id) {
-                if (! $this->category->isSlugUnique($id, $value)) {
+                if (!$this->category->isSlugUnique($id, $value)) {
                     $fail(trans('admin::app.response.already-taken', ['name' => 'Category']));
                 }
             }],
             $locale . '.name' => 'required',
-            'image.*' => 'mimes:jpeg,jpg,bmp,png'
+            'image.*' => 'mimes:jpeg,jpg,bmp,png',
         ]);
 
         $this->category->update(request()->all(), $id);
@@ -150,7 +151,7 @@ class CategoryController extends Controller
     {
         Event::fire('catalog.category.delete.before', $id);
 
-        if(strtolower($this->category->find($id)->name) == "root") {
+        if (strtolower($this->category->find($id)->name) == "root") {
             session()->flash('warning', trans('admin::app.response.delete-category-root', ['name' => 'Category']));
         } else {
             session()->flash('success', trans('admin::app.response.delete-success', ['name' => 'Category']));
@@ -168,7 +169,8 @@ class CategoryController extends Controller
      *
      * @return response \Illuminate\Http\Response
      */
-    public function massDestroy() {
+    public function massDestroy()
+    {
         $suppressFlash = false;
 
         if (request()->isMethod('delete') || request()->isMethod('post')) {
@@ -181,17 +183,18 @@ class CategoryController extends Controller
                     $this->category->delete($value);
 
                     Event::fire('catalog.category.delete.after', $value);
-                } catch(\Exception $e) {
+                } catch (\Exception $e) {
                     $suppressFlash = true;
 
                     continue;
                 }
             }
 
-            if (! $suppressFlash)
+            if (!$suppressFlash) {
                 session()->flash('success', trans('admin::app.datagrid.mass-ops.delete-success'));
-            else
+            } else {
                 session()->flash('info', trans('admin::app.datagrid.mass-ops.partial-action', ['resource' => 'Attribute Family']));
+            }
 
             return redirect()->back();
         } else {
